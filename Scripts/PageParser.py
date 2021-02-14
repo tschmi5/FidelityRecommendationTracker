@@ -1,42 +1,59 @@
-
+"""
+Module To Help Extract Fidelity Research Information
+"""
 import bs4
-import pandas as pd
-import numpy as np
 
 
 class PageParser:
+    """
+    Object to aid with parsing of fidelity research page
+    """
     def __init__(self, file_path):
+        """
+        :param file_path: Path to Fidelity HTML stock research page
+        """
         self.file_path = file_path
 
-        with open(self.file_path, 'r') as p:
-            self.file_soup = bs4.BeautifulSoup(p.read(), 'html.parser')
+        with open(self.file_path, 'r') as page:
+            self.file_soup = bs4.BeautifulSoup(page.read(), 'html.parser')
 
     def get_bearish_tech_events(self):
+        """
+        Get Bearish technical events and data
+        :return: Dict
+        """
         return self.__extract_bull_or_bear_table('bear')
 
     def get_bullish_tech_event(self):
+        """
+        Get Bullish technical event and data
+        :return:
+        """
         return self.__extract_bull_or_bear_table('bull')
 
-    def __extract_bull_or_bear_table(self, type):
-
+    def __extract_bull_or_bear_table(self, event_type):
+        """
+        Helper to extract event details for technical event
+        :param event_type:
+        :return:
+        """
         # Find the tbody of the table for given type
-        tbody = self.file_soup.find('div', class_=type).findChild('table').findChild("tbody")
+        tbody = self.file_soup.find('div', class_=event_type).findChild('table').findChild("tbody")
 
         # Extract the rows for this table
         rows = tbody.find_all('td', {"scope": "row"})
 
-
         tickers = []
         link_ids = []
 
-        for i, r in enumerate(rows):
+        for index, row in enumerate(rows):
             # If even row, extract ticker symbol
-            if i % 2 == 0:
-                for j in r.find_all('span', recursive=False):
+            if index % 2 == 0:
+                for j in row.find_all('span', recursive=False):
                     tickers.append(j['fmr-param-symbol'])
             # If odd row, extract link to data
             else:
-                for j in r.find_all('a', recursive=False):
+                for j in row.find_all('a', recursive=False):
                     link_ids.append(f'{j["id"]}-content')
 
         events_data = []
@@ -45,14 +62,22 @@ class PageParser:
             events_data.append(e_d)
         return events_data
 
-    def __tech_event_table_extraction_helper(self, id):
-        table = self.file_soup.find('div', attrs={"id": id}).findChild('table')
-        event_type = table.findChild('thead').findChild('tr').findChild('th').contents
+    def __tech_event_table_extraction_helper(self, event_id):
+        """
 
+        :param event_id: id of the corresponding data
+        :return: Dict of table values
+        """
         event_data = {}
 
+        table = self.file_soup.find('div', attrs={"id": event_id}).findChild('table')
+        event_data['event_type'] = table.findChild('thead').findChild('tr').findChild('th').contents
+
         for row in table.findChild('tbody').findChildren('tr'):
-            label = '_'.join(str(row.findChild(attrs={"class":"first"}).contents[0]).strip(':').lower().split())
+            label = '_'.join(str(row.findChild(attrs={"class":"first"}).contents[0])
+                             .strip(':')
+                             .lower()
+                             .split())
             value = ' '.join(str(row.findChild(attrs={"class":"second"}).contents[0]).split())
 
             if label == 'target_price':
@@ -64,4 +89,3 @@ class PageParser:
                 event_data[label] = value
 
         return event_data
-
