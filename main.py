@@ -9,11 +9,8 @@ pages = glob.glob('./HTML/*.html', recursive=False)
 pp = PageParser(pages[0])
 
 
-pp.get_bearish_technical_events()
+print(pp.get_bearish_technical_events())
 
-pp.get_bullish_technical_events()
+print(pp.get_bullish_technical_events())
 
-
-
-
-# bs4.BeautifulSoup.find_all(class_="bearish", pages[0])
+print(pp.get_top_rated_by_sector())

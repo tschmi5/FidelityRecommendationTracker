@@ -71,7 +71,11 @@ class PageParser:
         event_data = {}
 
         table = self.file_soup.find('div', attrs={"id": event_id}).findChild('table')
-        event_data['event_type'] = table.findChild('thead').findChild('tr').findChild('th').contents
+        event_data['event_type'] = " ".join(table
+                                            .findChild('thead')
+                                            .findChild('tr').findChild('th')
+                                            .contents[0]
+                                            .split())
 
         for row in table.findChild('tbody').findChildren('tr'):
             label = '_'.join(str(row.findChild(attrs={"class":"first"}).contents[0])
@@ -86,6 +90,26 @@ class PageParser:
             elif label == 'volume':
                 event_data[label] = int(value.replace(',',''))
             else:
-                event_data[label] = value
+                event_data[label] = " ".join(value.split())
 
         return event_data
+
+    def get_top_rated_by_sector(self):
+        """
+        Parse out the top rated by sector
+        :return:
+        """
+        # Grab the sectors
+        sectors_html = self.file_soup.find_all('span', attrs={"class": "col-sector"})
+        sectors = []
+        for sector_html in sectors_html:
+            sectors.append(sector_html.findChild('a').contents[0])
+
+        # Grab the Ticker Symbols
+        tickers = []
+        sector_data = self.file_soup.find('div', attrs={"class":"sector-data"})
+        for j in sector_data.find_all('span', recursive=True):
+            if j.has_attr('fmr-param-symbol'):
+                tickers.append(j['fmr-param-symbol'])
+
+        return [{"ticker": ticker, "sector": sector} for ticker, sector in zip(tickers, sectors)]
