@@ -39,21 +39,29 @@ class PageParser:
                 for j in r.find_all('a', recursive=False):
                     link_ids.append(f'{j["id"]}-content')
 
-        for id in link_ids:
-            self.__tech_event_table_extraction_helper(id)
-
-        table = np.empty([len(tickers), 3])
-        df = pd.DataFrame(
-            table,
-            columns=['Ticker','Price','Something'],
-            index=tickers
-        )
-
-        # print(df)
-
-
-        return 0
+        events_data = []
+        for ticker, link_id in zip(tickers, link_ids):
+            e_d = {'ticker': ticker, **self.__tech_event_table_extraction_helper(link_id)}
+            events_data.append(e_d)
+        return events_data
 
     def __tech_event_table_extraction_helper(self, id):
-        thing = self.file_soup.find('div', attrs={"id": id})
-        print(thing)
+        table = self.file_soup.find('div', attrs={"id": id}).findChild('table')
+        event_type = table.findChild('thead').findChild('tr').findChild('th').contents
+
+        event_data = {}
+
+        for row in table.findChild('tbody').findChildren('tr'):
+            label = '_'.join(str(row.findChild(attrs={"class":"first"}).contents[0]).strip(':').lower().split())
+            value = ' '.join(str(row.findChild(attrs={"class":"second"}).contents[0]).split())
+
+            if label == 'target_price':
+                event_data['lower_target_price'] = float(value.split('-')[0])
+                event_data['upper_target_price'] = float(value.split('-')[1])
+            elif label == 'volume':
+                event_data[label] = int(value.replace(',',''))
+            else:
+                event_data[label] = value
+
+        return event_data
+
