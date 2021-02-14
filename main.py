@@ -2,7 +2,7 @@
 import glob
 import re
 import bs4
-from Scripts.PageParser import PageParser
+from Modules.PageParser import PageParser
 
 pages = glob.glob('./HTML/*.html', recursive=False)
 
