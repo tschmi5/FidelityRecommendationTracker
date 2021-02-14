@@ -9,9 +9,9 @@ pages = glob.glob('./HTML/*.html', recursive=False)
 pp = PageParser(pages[0])
 
 
-pp.get_bearish_tech_events()
+pp.get_bearish_technical_events()
 
-pp.get_bullish_tech_event()
+pp.get_bullish_technical_events()
 
 
 

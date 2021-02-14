@@ -17,14 +17,14 @@ class PageParser:
         with open(self.file_path, 'r') as page:
             self.file_soup = bs4.BeautifulSoup(page.read(), 'html.parser')
 
-    def get_bearish_tech_events(self):
+    def get_bearish_technical_events(self):
         """
         Get Bearish technical events and data
         :return: Dict
         """
         return self.__extract_bull_or_bear_table('bear')
 
-    def get_bullish_tech_event(self):
+    def get_bullish_technical_events(self):
         """
         Get Bullish technical event and data
         :return:
@@ -64,7 +64,7 @@ class PageParser:
 
     def __tech_event_table_extraction_helper(self, event_id):
         """
-
+        Helper to extract event table data
         :param event_id: id of the corresponding data
         :return: Dict of table values
         """
